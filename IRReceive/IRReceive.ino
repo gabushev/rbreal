@@ -1,19 +1,20 @@
 // подключение библиотеки
 #include <IRremote.h> 
-//вход ИК приемника
-int RECV_PIN = 2;  
-int LED_PIN = 13;  
+#define LED_PIN 13
+#define RECV_PIN 2 //вход ИК приемника
+
+#define HEADSHOT 0xa90 //Пакет выстрела
+
 IRrecv irrecv(RECV_PIN); 
 decode_results results; 
+
 unsigned long volatile IRBuffer;
 long volatile IRCode;
 unsigned long IRStartTime, IREndTime;
 
-#define HEADSHOT 0xa90          //0xa90
-
 void setup() 
 { 
-  pinMode(13, OUTPUT);
+  pinMode(LED_PIN, OUTPUT);
   // последовательный порт 
   Serial.begin(9600); 
   // включить приемник 
@@ -63,17 +64,17 @@ void ir_go(long kod)
   switch(kod)
   {
     case HEADSHOT :    // попадание выстрела
-      digitalWrite(13, HIGH);
+      digitalWrite(LED_PIN, HIGH);
       delay(500);
-      digitalWrite(13, LOW);
+      digitalWrite(LED_PIN, LOW);
       delay(500);
-      digitalWrite(13, HIGH);
+      digitalWrite(LED_PIN, HIGH);
       delay(500);
-      digitalWrite(13, LOW);
+      digitalWrite(LED_PIN, LOW);
       Serial.println("bang!");
       break;
     default:
-      Serial.println("hz");  
+      Serial.println("unknown code");  
       break;
   }
 }

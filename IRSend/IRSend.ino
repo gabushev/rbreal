@@ -1,7 +1,7 @@
 #include <IRremote.h>
+#define LED_PIN 13
+#define BTN_PIN 9
 
-int LED_PIN = 13;
-int BTN_PIN = 9;
 int val = 0;
 
 IRsend irsend;
