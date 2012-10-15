@@ -1,6 +1,8 @@
 // подключение библиотек
 #include <PinChangeInt.h>
 #include <IRremote.h> 
+#include <Wire.h> 
+#define ADDR 128 //адрес устройства
 #define LED_PIN 13
 #define RECV_PIN5 5 //вход ИК приемника
 #define RECV_PIN6 6 //вход ИК приемника
@@ -16,32 +18,28 @@ decode_results results;
 unsigned long volatile IRBuffer, IRStartTime = 0, IREndTime = 0;
 long volatile IRCodes[2];
 
+char volatile i2cBuffer;
+int volatile sentToMaster;
+
 void setup() 
-{ 
+ { 
   pinMode(LED_PIN, OUTPUT);
   // последовательный порт 
   Serial.begin(9600); 
-
+  
   // включить приемники
   for (int i=0;i<receivePinsCount;i++)
   {
     IRreceivers[i].enableIRIn();
     PCintPort::attachInterrupt(receivePins[i], getIRCode, FALLING); 
   } 
-} 
   
-void loop() 
-{ 
-  for (int i=0;i<receivePinsCount;i++)
-  {
-    if(IRCodes[i]>0) {
-      Serial.print(receivePins[i]);
-      Serial.print('=');
-      Serial.println(IRCodes[i]);
-      IRCodes[i] = 0;
-    }
-  } 
-}
+  Wire.begin(ADDR); //определим как ведомый с указанным адресом 
+  Wire.onRequest(wireRequestHandler);
+ } 
+  
+void loop()
+{}
 
 //получить индекс пина по номеру
 int getPinIndex(int receivePin)
@@ -81,22 +79,24 @@ void getIRCode()
   PCintPort::attachInterrupt(PCintPort::arduinoPin, getIRCode, CHANGE); 
 }
 
-void ir_go(long kod)
+void wireRequestHandler()  
 {
-  switch(kod)
+  byte bufferByte = 0;
+  long bufferLong = 0;
+  for (int i=0;i<receivePinsCount;i++)
   {
-    case HEADSHOT :    // попадание выстрела
-      digitalWrite(LED_PIN, HIGH);
-      delay(500);
-      digitalWrite(LED_PIN, LOW);
-      delay(500);
-      digitalWrite(LED_PIN, HIGH);
-      delay(500);
-      digitalWrite(LED_PIN, LOW);
-      Serial.println("bang!");
-      break;
-    default:
-      Serial.println("unknown code");  
-      break;
-  }
+    bufferLong = IRCodes[i];
+    Serial.println(IRCodes[i],BIN);
+    for(int k=0; k<4; k++) {
+      bufferByte = 0;
+      bufferByte = bufferLong&0xFF;
+      Serial.println(bufferByte, BIN);
+      Wire.write(bufferByte);
+      bufferLong = bufferLong >> 8;
+      Serial.println(bufferLong, BIN);
+    }
+    if(IRCodes[i]>0) {
+      IRCodes[i] = 0;
+    }
+  } 
 }
