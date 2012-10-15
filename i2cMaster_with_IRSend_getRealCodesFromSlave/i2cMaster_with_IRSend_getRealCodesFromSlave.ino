@@ -43,18 +43,20 @@ void trySlave(){
   Wire.requestFrom(ADDR, 8);
   int currentLongFromSlave = 0;
   byte bufferByte = 0;
-  long bufferLong = 0;
+  long bufferLong, codeCandidate = 0;
   while(Wire.available()){
     fromSlaveCodes[currentLongFromSlave] = 0;
     bufferLong = 0;
+    codeCandidate = 0;
     for(int k=0; k<4; k++) {
       bufferByte = Wire.read();
-      bufferLong = bufferLong << 8;
-      bufferLong = bufferLong | bufferByte;
-      Serial.println(bufferLong, BIN);
+      Serial.println(bufferByte, BIN);
+      bufferLong = bufferByte;
+      bufferLong = bufferLong << k*8;
+      codeCandidate = bufferLong | codeCandidate;
     }
-    if(bufferLong > 0) {
-      fromSlaveCodes[currentLongFromSlave] = bufferLong;
+    if(codeCandidate > 0) {
+      fromSlaveCodes[currentLongFromSlave] = codeCandidate;
     }
     currentLongFromSlave++;
   }

@@ -86,14 +86,11 @@ void wireRequestHandler()
   for (int i=0;i<receivePinsCount;i++)
   {
     bufferLong = IRCodes[i];
-    Serial.println(IRCodes[i],BIN);
     for(int k=0; k<4; k++) {
       bufferByte = 0;
       bufferByte = bufferLong&0xFF;
-      Serial.println(bufferByte, BIN);
       Wire.write(bufferByte);
       bufferLong = bufferLong >> 8;
-      Serial.println(bufferLong, BIN);
     }
     if(IRCodes[i]>0) {
       IRCodes[i] = 0;
