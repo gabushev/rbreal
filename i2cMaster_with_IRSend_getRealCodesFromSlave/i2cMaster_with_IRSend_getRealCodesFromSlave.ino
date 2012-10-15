@@ -6,6 +6,9 @@
 
 int val = 0;
 long fromSlaveCodes[2] = {0,0};
+
+char fakeByte;
+
 IRsend irsend;
 
 void setup()
@@ -28,37 +31,35 @@ void loop() {
     }
   }
   trySlave();
-  if(fromSlaveCodes[0] > 0 || fromSlaveCodes[1] > 0) {
-    Serial.print("0=");
-    Serial.println(fromSlaveCodes[0]);
-    Serial.print("1=");
-    Serial.println(fromSlaveCodes[1]);
-    fromSlaveCodes[0] = 0; fromSlaveCodes[1] = 0;
-  }
+//Serial.println(fakeCode, HEX);
   
   delay(1000);
 }
 
 void trySlave(){
-  Wire.requestFrom(ADDR, 8);
-  int currentLongFromSlave = 0;
-  byte bufferByte = 0;
-  long bufferLong, codeCandidate = 0;
-  while(Wire.available()){
-    fromSlaveCodes[currentLongFromSlave] = 0;
-    bufferLong = 0;
-    codeCandidate = 0;
-    for(int k=0; k<4; k++) {
-      bufferByte = Wire.read();
-      Serial.println(bufferByte, BIN);
-      bufferLong = bufferByte;
-      bufferLong = bufferLong << k*8;
-      codeCandidate = bufferLong | codeCandidate;
-    }
-    if(codeCandidate > 0) {
-      fromSlaveCodes[currentLongFromSlave] = codeCandidate;
-    }
-    currentLongFromSlave++;
+  Wire.requestFrom(ADDR, 4);
+//  byte bufferByte = 0;
+//  long bufferLong, codeCandidate = 0;
+  
+//  fakeCode = 0;
+  
+while(Wire.available())    // slave may send less than requested
+  { 
+    long fakeCode = Wire.read();    // receive a byte as character
+    Serial.println(fakeCode, HEX);
   }
+    //bufferLong = 0;
+    //codeCandidate = 0;
+    //for(int k=0; k<sizeof(fakeCode); k++) {
+      //bufferByte = Wire.read();
+      //bufferLong = bufferByte;
+      //bufferLong = bufferLong << k*8;
+      //Serial.println(bufferByte, BIN);
+      //codeCandidate = bufferLong | codeCandidate;
+    //}
+    //if(codeCandidate > 0) {
+      //fakeCode = codeCandidate;
+    //}
+  
 }
 

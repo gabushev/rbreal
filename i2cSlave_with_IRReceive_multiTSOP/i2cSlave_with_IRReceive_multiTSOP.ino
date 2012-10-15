@@ -17,6 +17,7 @@ decode_results results;
 
 unsigned long volatile IRBuffer, IRStartTime = 0, IREndTime = 0;
 long volatile IRCodes[2];
+long fakeCodes[2] = {0xa90, 0xa91};
 
 char volatile i2cBuffer;
 int volatile sentToMaster;
@@ -79,7 +80,7 @@ void getIRCode()
   PCintPort::attachInterrupt(PCintPort::arduinoPin, getIRCode, CHANGE); 
 }
 
-void wireRequestHandler()  
+void wireRequestHandlerBackup()  
 {
   byte bufferByte = 0;
   long bufferLong = 0;
@@ -96,4 +97,22 @@ void wireRequestHandler()
       IRCodes[i] = 0;
     }
   } 
+} 
+void wireRequestHandler()  
+{
+//  byte bufferByte = 0;
+//  long bufferLong = 0;
+  
+//  long longToSend = fakeCodes[0];
+  
+//  bufferLong = longToSend;
+//  Serial.println(bufferLong, BIN);
+//  for(int k=0; k<4; k++) {
+//    bufferByte = 0;
+//    bufferByte = bufferLong&0xFF;
+//      Serial.println(bufferByte, BIN);
+    Wire.write(0x9ab);
+//    bufferLong = bufferLong >> 8;
+//      Serial.println(bufferLong, BIN);
+//  } 
 }
