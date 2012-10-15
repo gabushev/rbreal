@@ -9,11 +9,12 @@
 
 int receivePins[] = {RECV_PIN5, RECV_PIN6};
 IRrecv IRreceivers[] = {IRrecv(receivePins[0]), IRrecv(receivePins[1])}; 
+int receivePinsCount = sizeof(receivePins)/sizeof(receivePins[0]);
 
 decode_results results; 
 
 unsigned long volatile IRBuffer, IRStartTime = 0, IREndTime = 0;
-long volatile IRCode;
+long volatile IRCodes[2];
 int volatile fromWhat;
 
 void setup() 
@@ -22,7 +23,8 @@ void setup()
   // последовательный порт 
   Serial.begin(9600); 
   // включить приемники
-  for (int i=0;i<sizeof(IRreceivers);i++)
+  
+  for (int i=0;i<receivePinsCount;i++)
   {
     IRreceivers[i].enableIRIn();
     PCintPort::attachInterrupt(receivePins[i], getIRCode, FALLING); 
@@ -31,22 +33,20 @@ void setup()
   
 void loop() 
 { 
-  // обработка кода нажатия
-  if(IRCode>0)
+  for (int i=0;i<receivePinsCount;i++)
   {
-    Serial.println(IRCode);
-    Serial.println(fromWhat);
-    ir_go(IRCode);  
-    fromWhat = 0;
-    IRCode=0;  
+    if(IRCodes[i]>0) {
+      Serial.print(receivePins[i]);
+      Serial.print('=');
+      Serial.println(IRCodes[i]);
+      IRCodes[i] = 0;
+    }
   } 
 }
 
 //получить индекс пина по номеру
 int getPinIndex(int receivePin)
 {
-  int receivePinsCount = sizeof(receivePins)/sizeof(receivePins[0]);
-  
   for (int i=0;i<receivePinsCount;i++)
   {
     if(receivePins[i] == receivePin) {
@@ -69,12 +69,12 @@ void getIRCode()
       IREndTime=millis();
       if (IREndTime-IRStartTime>1000)
       {
-        fromWhat = PCintPort::arduinoPin;
-        IRCode = IRBuffer;IRStartTime=IREndTime;
+        IRCodes[pinIndex] = IRBuffer;
+        IRStartTime=IREndTime;
       }
       else
       {
-        IRCode = 0;
+        IRCodes[pinIndex] = 0;
       }
     } 
     IRreceivers[pinIndex].resume(); 
