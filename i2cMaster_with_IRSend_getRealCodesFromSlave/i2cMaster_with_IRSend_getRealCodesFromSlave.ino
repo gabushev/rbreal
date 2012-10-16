@@ -31,35 +31,39 @@ void loop() {
     }
   }
   trySlave();
-//Serial.println(fakeCode, HEX);
+      Serial.print("0=");
+    Serial.println(fromSlaveCodes[0]);
+    Serial.print("1=");
+    Serial.println(fromSlaveCodes[1]);
+  if(fromSlaveCodes[0] > 0 || fromSlaveCodes[1] > 0) {
+
+//    fromSlaveCodes[0] = 0; fromSlaveCodes[1] = 0;
+  }
   
   delay(1000);
 }
 
 void trySlave(){
-  Wire.requestFrom(ADDR, 4);
-//  byte bufferByte = 0;
-//  long bufferLong, codeCandidate = 0;
-  
-//  fakeCode = 0;
-  
-while(Wire.available())    // slave may send less than requested
-  { 
-    long fakeCode = Wire.read();    // receive a byte as character
-    Serial.println(fakeCode, HEX);
+  for(int i = 0; i < (sizeof(fromSlaveCodes) / sizeof(fromSlaveCodes[0])); i++) {
+    fromSlaveCodes[i] = i2cReadLong();
   }
-    //bufferLong = 0;
-    //codeCandidate = 0;
-    //for(int k=0; k<sizeof(fakeCode); k++) {
-      //bufferByte = Wire.read();
-      //bufferLong = bufferByte;
-      //bufferLong = bufferLong << k*8;
-      //Serial.println(bufferByte, BIN);
-      //codeCandidate = bufferLong | codeCandidate;
-    //}
-    //if(codeCandidate > 0) {
-      //fakeCode = codeCandidate;
-    //}
+}
+
+long i2cReadLong(){
+  long receivedLong = 0;
+  byte buffer = 0;
   
+  int count = sizeof(long);
+  
+  Wire.requestFrom(ADDR, count);
+  while(Wire.available() < count);
+
+  for(int i = 0; i < count; i++) {
+    buffer = Wire.read();
+    receivedLong <<= 8;
+    receivedLong += buffer;
+  }
+  
+  return receivedLong;
 }
 
