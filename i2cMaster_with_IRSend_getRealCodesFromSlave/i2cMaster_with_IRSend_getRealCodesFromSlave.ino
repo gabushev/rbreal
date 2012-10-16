@@ -28,37 +28,39 @@ void loop() {
     }
   }
   trySlave();
-  if(fromSlaveCodes[0] > 0 || fromSlaveCodes[1] > 0) {
-    Serial.print("0=");
+      Serial.print("0=");
     Serial.println(fromSlaveCodes[0]);
     Serial.print("1=");
     Serial.println(fromSlaveCodes[1]);
-    fromSlaveCodes[0] = 0; fromSlaveCodes[1] = 0;
+  if(fromSlaveCodes[0] > 0 || fromSlaveCodes[1] > 0) {
+
+//    fromSlaveCodes[0] = 0; fromSlaveCodes[1] = 0;
   }
   
   delay(1000);
 }
 
 void trySlave(){
-  Wire.requestFrom(ADDR, 8);
-  int currentLongFromSlave = 0;
-  byte bufferByte = 0;
-  long bufferLong, codeCandidate = 0;
-  while(Wire.available()){
-    fromSlaveCodes[currentLongFromSlave] = 0;
-    bufferLong = 0;
-    codeCandidate = 0;
-    for(int k=0; k<4; k++) {
-      bufferByte = Wire.read();
-      Serial.println(bufferByte, BIN);
-      bufferLong = bufferByte;
-      bufferLong = bufferLong << k*8;
-      codeCandidate = bufferLong | codeCandidate;
-    }
-    if(codeCandidate > 0) {
-      fromSlaveCodes[currentLongFromSlave] = codeCandidate;
-    }
-    currentLongFromSlave++;
+  for(int i = 0; i < (sizeof(fromSlaveCodes) / sizeof(fromSlaveCodes[0])); i++) {
+    fromSlaveCodes[i] = i2cReadLong();
   }
+}
+
+long i2cReadLong(){
+  long receivedLong = 0;
+  byte buffer = 0;
+  
+  int count = sizeof(long);
+  
+  Wire.requestFrom(ADDR, count);
+  while(Wire.available() < count);
+
+  for(int i = 0; i < count; i++) {
+    buffer = Wire.read();
+    receivedLong <<= 8;
+    receivedLong += buffer;
+  }
+  
+  return receivedLong;
 }
 
