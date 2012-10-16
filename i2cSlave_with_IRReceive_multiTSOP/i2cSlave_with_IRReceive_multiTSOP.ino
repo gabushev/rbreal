@@ -17,7 +17,6 @@ decode_results results;
 
 unsigned long volatile IRBuffer, IRStartTime = 0, IREndTime = 0;
 long volatile IRCodes[2];
-long fakeCodes[2] = {0xa90, 0xa91};
 
 char volatile i2cBuffer;
 int volatile sentToMaster;
@@ -37,10 +36,21 @@ void setup()
   
   Wire.begin(ADDR); //определим как ведомый с указанным адресом 
   Wire.onRequest(wireRequestHandler);
+  
+  Serial.print("hack the planet");
  } 
   
 void loop()
-{}
+{
+  if(IRCodes[0] > 0) {
+    Serial.print("0=");
+    Serial.println(IRCodes[0]);
+  }
+  if(IRCodes[1] > 0) {
+    Serial.print("1=");
+    Serial.println(IRCodes[1]);
+  }
+}
 
 //получить индекс пина по номеру
 int getPinIndex(int receivePin)
@@ -80,39 +90,27 @@ void getIRCode()
   PCintPort::attachInterrupt(PCintPort::arduinoPin, getIRCode, CHANGE); 
 }
 
-void wireRequestHandlerBackup()  
+void wireRequestHandler()  
 {
-  byte bufferByte = 0;
-  long bufferLong = 0;
+//  i2cWriteLong(0x9ac);
   for (int i=0;i<receivePinsCount;i++)
   {
-    bufferLong = IRCodes[i];
-    for(int k=0; k<4; k++) {
-      bufferByte = 0;
-      bufferByte = bufferLong&0xFF;
-      Wire.write(bufferByte);
-      bufferLong = bufferLong >> 8;
-    }
+    i2cWriteLong(IRCodes[i]);
     if(IRCodes[i]>0) {
       IRCodes[i] = 0;
     }
   } 
 } 
-void wireRequestHandler()  
-{
-//  byte bufferByte = 0;
-//  long bufferLong = 0;
+
+void i2cWriteLong(long myLong) {
+  byte myBuffer[4];
   
-//  long longToSend = fakeCodes[0];
+  int count = sizeof(myLong);
   
-//  bufferLong = longToSend;
-//  Serial.println(bufferLong, BIN);
-//  for(int k=0; k<4; k++) {
-//    bufferByte = 0;
-//    bufferByte = bufferLong&0xFF;
-//      Serial.println(bufferByte, BIN);
-    Wire.write(0x9ab);
-//    bufferLong = bufferLong >> 8;
-//      Serial.println(bufferLong, BIN);
-//  } 
+  for(int i = count; i > 0; i--) {
+    myBuffer[i-1] = myLong & 0xFF;
+    myLong >>= 8;
+  }
+    
+  Wire.write(myBuffer, count);
 }
