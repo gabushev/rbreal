@@ -4,10 +4,8 @@
 #define LED_PIN 13
 #define BTN_PIN 9
 
-int val = 0;
+int btn_val = 0;
 long fromSlaveCodes[2] = {0,0};
-
-char fakeByte;
 
 IRsend irsend;
 
@@ -15,35 +13,33 @@ void setup()
 {
   pinMode(LED_PIN, OUTPUT);
   pinMode(BTN_PIN, INPUT);
-  digitalWrite(LED_PIN, LOW);    // turn the LED off by making the voltage LOW  
+  digitalWrite(LED_PIN, LOW);
   Wire.begin(); //включить i2c
   Serial.begin(9600);
 }
 void loop() {
-  val = digitalRead(BTN_PIN);
-  digitalWrite(LED_PIN, val);
-  if (val == HIGH)
+  btn_val = digitalRead(BTN_PIN);
+  digitalWrite(LED_PIN, btn_val);
+  if (btn_val == HIGH)
   {
-    for (int i = 0; i < 3; i++)
-    {
-      irsend.sendSony(0xa90, 12); // Sony TV power code
-      delay(100);
-    }
-  }
-  trySlave();
-      Serial.print("0=");
-    Serial.println(fromSlaveCodes[0]);
-    Serial.print("1=");
-    Serial.println(fromSlaveCodes[1]);
-  if(fromSlaveCodes[0] > 0 || fromSlaveCodes[1] > 0) {
-
-//    fromSlaveCodes[0] = 0; fromSlaveCodes[1] = 0;
+    irsend.sendSony(0x67ab90, 24); // выстрелить
   }
   
-  delay(1000);
+  readFromSlave();
+
+  for (int i=0; i < (sizeof(fromSlaveCodes) / sizeof(fromSlaveCodes[0])); i++)
+  {
+    if(fromSlaveCodes[i] > 0) {
+      Serial.print(i);
+      Serial.print("=");
+      Serial.println(fromSlaveCodes[i], HEX);
+    }
+  } 
+  
+  delay(100);
 }
 
-void trySlave(){
+void readFromSlave(){
   for(int i = 0; i < (sizeof(fromSlaveCodes) / sizeof(fromSlaveCodes[0])); i++) {
     fromSlaveCodes[i] = i2cReadLong();
   }
